@@ -1,0 +1,12 @@
+# Core
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+
+# Endee vector DB
+endee>=0.1.15
+
+# Embeddings (runs locally, no API key needed)
+sentence-transformers>=3.3.1
+
+# Optional: for RAG answers (set OPENAI_API_KEY to use)
+openai>=1.55.0

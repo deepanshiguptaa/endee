@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Resources Search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --surface: #18181c;
+      --surface-2: rgba(24, 24, 28, 0.72);
+      --border: #2a2a2f;
+      --text: #e4e4e7;
+      --muted: #71717a;
+      --accent: #a78bfa;
+      --accent-dim: #7c3aed;
+      --good: #34d399;
+      --shadow: 0 10px 30px rgba(0,0,0,0.45);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "DM Sans", system-ui, sans-serif;
+      background:
+        radial-gradient(900px 450px at 20% -10%, rgba(124, 58, 237, 0.28), transparent 55%),
+        radial-gradient(700px 380px at 85% 5%, rgba(167, 139, 250, 0.18), transparent 55%),
+        radial-gradient(600px 450px at 50% 110%, rgba(52, 211, 153, 0.08), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.95), rgba(124, 58, 237, 0.85));
+      box-shadow: 0 10px 25px rgba(124, 58, 237, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .logo:after {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), transparent 40%);
+      transform: rotate(20deg);
+    }
+    .badge {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.75rem;
+      color: rgba(228, 228, 231, 0.9);
+      border: 1px solid rgba(42, 42, 47, 0.9);
+      background: rgba(24,24,28,0.55);
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .tab:hover { background: var(--surface); }
+    .tab.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+    }
+    .input-wrap {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      align-items: stretch;
+    }
+    .panel {
+      border: 1px solid rgba(42, 42, 47, 0.9);
+      background: linear-gradient(180deg, rgba(24, 24, 28, 0.78), rgba(24, 24, 28, 0.55));
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.35fr 0.65fr;
+      gap: 1rem;
+      align-items: start;
+    }
+    .hint {
+      border: 1px solid rgba(42, 42, 47, 0.9);
+      background: rgba(15, 15, 18, 0.35);
+      border-radius: 14px;
+      padding: 1rem 1rem;
+    }
+    .hint h3 {
+      font-size: 0.95rem;
+      margin: 0 0 0.35rem;
+      font-weight: 600;
+    }
+    .hint p {
+      margin: 0.35rem 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .hint kbd {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.78rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+      border: 1px solid rgba(42, 42, 47, 0.9);
+      background: rgba(24,24,28,0.7);
+      color: rgba(228,228,231,0.9);
+    }
+    input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(42, 42, 47, 0.95);
+      background: rgba(24, 24, 28, 0.78);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+    }
+    input::placeholder { color: var(--muted); }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
+    }
+    button {
+      padding: 0.75rem 1.25rem;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.98), rgba(124, 58, 237, 0.92));
+      color: white;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 10px 25px rgba(124, 58, 237, 0.22);
+      transition: transform 0.12s ease, opacity 0.15s, box-shadow 0.15s;
+    }
+    button:hover { opacity: 0.95; box-shadow: 0 12px 28px rgba(124, 58, 237, 0.28); }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .results {
+      margin-top: 1.5rem;
+    }
+    .card {
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      border: 1px solid rgba(42, 42, 47, 0.95);
+      background: rgba(24, 24, 28, 0.65);
+      margin-bottom: 0.75rem;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+    }
+    .card-title {
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+    }
+    .card-source { color: var(--muted); font-weight: 400; font-size: 0.75rem; }
+    .card-text {
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .card-text h1, .card-text h2, .card-text h3 { font-size: 0.95rem; margin: 0.5em 0 0.25em; }
+    .card-text code { background: var(--border); padding: 0.15em 0.4em; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 0.9em; }
+    .card-text pre { overflow-x: auto; padding: 0.75rem; background: var(--border); border-radius: 6px; font-size: 0.85rem; }
+    .card-text ul, .card-text ol { margin: 0.5em 0; padding-left: 1.25rem; }
+    .card-score {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: "JetBrains Mono", monospace;
+      margin-top: 0.5rem;
+    }
+    .answer-box {
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px solid rgba(167, 139, 250, 0.8);
+      background: rgba(167, 139, 250, 0.08);
+      margin-bottom: 1rem;
+    }
+    .answer-box h3 { margin-top: 0; font-size: 1rem; }
+    .answer-box p { margin: 0.5em 0; }
+    .error {
+      padding: 1rem;
+      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      font-size: 0.9rem;
+    }
+    .loading { color: var(--muted); font-size: 0.9rem; }
+    .sub-sub { margin-top: 0.25rem; }
+    .examples-row { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem; }
+    .example-pill { padding:0.35rem 0.7rem; border-radius:999px; border:1px solid var(--border); background:rgba(24,24,28,0.9); color:var(--muted); font-size:0.8rem; cursor:pointer; }
+    .example-pill:hover { border-color:var(--accent); color:var(--text); }
+    .results-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 1.25rem 0 0.75rem;
+    }
+    .results-head h2 {
+      font-size: 1rem;
+      margin: 0;
+      font-weight: 600;
+      color: rgba(228,228,231,0.95);
+    }
+    .results-meta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .empty {
+      border: 1px dashed rgba(42, 42, 47, 0.95);
+      border-radius: 14px;
+      padding: 1.25rem;
+      background: rgba(15, 15, 18, 0.25);
+      color: var(--muted);
+    }
+
+    /* Responsive layout */
+    @media (max-width: 520px) {
+      .container { padding: 1.25rem 1rem; }
+      h1 { font-size: 1.25rem; }
+      .subtitle { margin-bottom: 1.25rem; }
+      .tabs { margin-bottom: 1rem; }
+      .input-wrap { flex-direction: column; gap: 0.6rem; }
+      .examples-row { margin-bottom: 0; }
+      input { width: 100%; }
+      button#go { width: 100%; }
+      .card { padding: 0.9rem 1rem; }
+      .answer-box { padding: 1rem; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1 style="margin:0;">AI Resources Search</h1>
+          <p class="subtitle" style="margin:0.25rem 0 0;">Semantic search over AI/ML docs — ask in plain English.</p>
+          <p class="subtitle sub-sub" style="margin:0.1rem 0 0;">Search → find relevant passages. Ask (RAG) → search + synthesize an answer from them.</p>
+        </div>
+      </div>
+      <div class="badge">Endee • Local embeddings</div>
+    </div>
+
+    <div class="panel">
+      <div class="grid">
+        <div>
+          <div class="tabs">
+            <button class="tab active" data-mode="search">Search</button>
+            <button class="tab" data-mode="ask">Ask (RAG)</button>
+          </div>
+
+          <div class="examples-row">
+            <button class="example-pill" data-q="How does RAG work?">How does RAG work?</button>
+            <button class="example-pill" data-q="What is a vector database?">What is a vector database?</button>
+            <button class="example-pill" data-q="How do transformers differ from RNNs?">Transformers vs RNNs</button>
+          </div>
+
+          <div class="input-wrap" style="margin-bottom:0;">
+            <input type="text" id="query" placeholder="Ask a question (e.g. How does RAG work?)" autocomplete="off">
+            <button id="go">Search</button>
+          </div>
+        </div>
+
+        <div class="hint">
+          <h3>Tips</h3>
+          <p>Use <strong>Search</strong> to browse relevant passages.</p>
+          <p>Use <strong>Ask (RAG)</strong> for a direct answer (needs <code>OPENAI_API_KEY</code>).</p>
+          <p>Press <kbd>Enter</kbd> to run.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-head">
+      <h2 id="resultsTitle">Results</h2>
+      <div class="results-meta" id="resultsMeta"></div>
+    </div>
+    <div id="out" class="empty">Try an example above, or ask your own question.</div>
+  </div>
+
+  <script>
+    const API = ''; // same origin
+    const queryEl = document.getElementById('query');
+    const goBtn = document.getElementById('go');
+    const outEl = document.getElementById('out');
+    const tabs = document.querySelectorAll('.tab');
+    const examplePills = document.querySelectorAll('.example-pill');
+    const resultsTitleEl = document.getElementById('resultsTitle');
+    const resultsMetaEl = document.getElementById('resultsMeta');
+
+    let mode = 'search';
+
+    tabs.forEach(t => {
+      t.addEventListener('click', () => {
+        tabs.forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        mode = t.dataset.mode;
+        goBtn.textContent = mode === 'search' ? 'Search' : 'Ask';
+        if (resultsMetaEl) resultsMetaEl.textContent = '';
+      });
+    });
+
+    async function run() {
+      const q = queryEl.value.trim();
+      if (!q) return;
+
+      goBtn.disabled = true;
+      const loadingMsg = mode === 'ask' ? 'Searching and generating answer...' : 'Searching...';
+      outEl.classList.remove('empty');
+      outEl.innerHTML = '<p class="loading">' + loadingMsg + '</p>';
+      const started = performance.now();
+
+      try {
+        const url = mode === 'search' ? '/search' : '/ask';
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q, top_k: 5 }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          outEl.classList.remove('empty');
+          outEl.innerHTML = `<div class="error">${data.detail || JSON.stringify(data)}</div>`;
+          return;
+        }
+
+        if (mode === 'search') {
+          const results = data.results || [];
+          if (results.length === 0) {
+            outEl.classList.add('empty');
+            outEl.innerHTML = '<p class="loading">No results found. Try a different query.</p>';
+          } else {
+            outEl.innerHTML = results.map(r => `
+              <div class="card">
+                <div class="card-title">${escapeHtml(r.title || r.source || 'Doc')} <span class="card-source">(${escapeHtml(r.source)})</span></div>
+                <div class="card-text">${renderMarkdown(r.text)}</div>
+                <div class="card-score">similarity: ${r.similarity != null ? r.similarity.toFixed(4) : '—'}</div>
+              </div>
+            `).join('');
+          }
+          if (resultsTitleEl) resultsTitleEl.textContent = 'Search results';
+          if (resultsMetaEl) resultsMetaEl.textContent = `${results.length} hit(s) • ${(performance.now() - started).toFixed(0)}ms`;
+        } else {
+          let html = '';
+          if (data.answer) {
+            html += `<div class="answer-box"><h3>Answer</h3><div class="answer-content">${renderMarkdown(data.answer)}</div></div>`;
+          } else if (data.error) {
+            html += `<div class="error">${escapeHtml(data.error)}</div>`;
+          }
+          if (data.context) {
+            const parts = data.context.split('\n\n').slice(0, 3);
+            html += '<h3 style="font-size:0.9rem; margin-top:1rem;">Sources used</h3>';
+            parts.forEach(p => {
+              if (p.trim()) html += `<div class="card"><div class="card-text">${renderMarkdown(p.slice(0, 300) + '…')}</div></div>`;
+            });
+          }
+          outEl.innerHTML = html || '<p class="loading">Set OPENAI_API_KEY for RAG answers.</p>';
+          if (resultsTitleEl) resultsTitleEl.textContent = 'Answer';
+          if (resultsMetaEl) resultsMetaEl.textContent = `${(performance.now() - started).toFixed(0)}ms`;
+        }
+      } catch (e) {
+        outEl.classList.remove('empty');
+        outEl.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`;
+      } finally {
+        goBtn.disabled = false;
+      }
+    }
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+    function renderMarkdown(s) {
+      if (!s) return '';
+      try {
+        return (typeof marked !== 'undefined' ? marked.parse(s) : escapeHtml(s));
+      } catch (e) {
+        return escapeHtml(s);
+      }
+    }
+
+    examplePills.forEach(p => p.addEventListener('click', () => {
+      queryEl.value = p.dataset.q || '';
+      run();
+    }));
+    goBtn.addEventListener('click', run);
+    queryEl.addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
+  </script>
+</body>
+</html>

@@ -1,27 +1,27 @@
-# AI Resources Search — Semantic Search + RAG with Endee
+# AI assets seek — Semantic search + RAG with Endee
 
-A small semantic search and RAG demo over AI/ML learning docs. Uses [Endee](https://github.com/endee-io/endee) as the vector database and sentence-transformers for embeddings (runs locally, no API keys required for search).
+A small semantic search and RAG demo over AI/ML studying medical doctors. makes use of [Endee](https://github.com/endee-io/endee) because the vector database and sentence-transformers for embeddings (runs regionally, no API keys required for search).
 
-> **Evaluation note**: This project was built for the Endee internship evaluation. Per the requirements: the official [Endee repo](https://github.com/endee-io/endee) should be starred and forked first. This app is self-contained and uses Endee via Docker + Python SDK — you can run it as-is or drop it into your forked Endee repo (e.g. under `examples/`).
+> **assessment observe**: This undertaking became constructed for the Endee internship assessment. according to the requirements: the respectable [Endee repo](https://github.com/endee-io/endee) should be starred and forked first. This app is self-contained and makes use of Endee thru Docker + Python SDK — you can run it as-is or drop it into your forked Endee repo (e.g. beneath `examples/`).
 
 ---
 
 ## What’s going on here
 
-**Problem**: Keyword search is limited. You want to find docs by meaning, not just exact words. “How does retrieval-augmented generation work?” should surface content about RAG even if the exact phrase isn’t there.
+**hassle**: key-word search is confined. You need to discover docs through meaning, now not just specific phrases. “How does retrieval-augmented technology work?” must floor content approximately RAG even supposing the exact word isn’t there.
 
-**Approach**: Embed docs into vectors, store them in Endee, and at query time embed the question and run a similarity search. Optionally, feed the top results to an LLM for a synthesized answer (RAG).
+**approach**: Embed medical doctors into vectors, shop them in Endee, and at question time embed the question and run a similarity search. Optionally, feed the top outcomes to an LLM for a synthesized solution (RAG).
 
 ---
 
-## Project layout
+## mission format
 
 ```
 .
-├── data/           # Markdown docs (indexed by ingest)
-├── static/         # Simple HTML/JS UI
-├── api.py          # FastAPI: /search, /ask
-├── ingest.py       # Loads data/, embeds, upserts to Endee
+├── facts/          # Markdown medical doctors (listed through ingest)
+├── static/         # simple HTML/JS UI
+├── api.py          # FastAPI: /seek, /ask
+├── ingest.py       # hundreds facts/, embeds, upserts to Endee
 ├── embedding.py    # sentence-transformers wrapper
 ├── config.py       # Config from env
 ├── requirements.txt
@@ -30,51 +30,51 @@ A small semantic search and RAG demo over AI/ML learning docs. Uses [Endee](http
 
 ---
 
-## How Endee fits in
+## How Endee suits in
 
 Endee is the vector store. It’s used for:
 
 1. **Index**: One dense index, `ai_resources`, 384‑dimensional vectors, cosine similarity.
-2. **Upsert**: Ingest script embeds each doc chunk and calls `index.upsert(...)`.
-3. **Query**: API embeds the user query and calls `index.query(vector=..., top_k=5)`.
+2. **Upsert**: Ingest script embeds every doc bite and calls `index.upsert(...)`.
+3. **query**: API embeds the user query and calls `index.query(vector=..., top_k=five)`.
 
-Endee runs as a separate process (Docker). The Python app talks to it over HTTP via the `endee` Python SDK. No schema migrations — we create the index once and upsert/query.
+Endee runs as a separate system (Docker). The Python app talks to it over HTTP through the `endee` Python SDK. No schema migrations — we create the index as soon as and upsert/query.
 
 ---
 
 ## Setup
 
-### 1. Prerequisites
+### 1. conditions
 
-- Python 3.10+
+- Python three.10+
 - Docker (for Endee)
 
-### 2. Start Endee
+### 2. begin Endee
 
 ```bash
 docker compose up -d
 ```
 
-Endee runs at `http://localhost:8080`. You can open that URL to see its dashboard.
+Endee runs at `http://localhost:8080`. you may open that URL to peer its dashboard.
 
 ### 3. Python env
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate   # Windows
-# source .venv/bin/activate   # Mac/Linux
+.venvScriptsactivate   # home windows
+# source .venv/bin/set off   # Mac/Linux
 
-pip install -r requirements.txt
+pip install -r necessities.txt
 ```
 
-### 4. Ingest data
+### 4. Ingest facts
 
 ```bash
 python ingest.py          # Upsert (stable IDs, no duplicates on re-run)
-python ingest.py --clear  # Delete index, recreate, then upsert (fresh start)
+python ingest.py --clean  # Delete index, recreate, then upsert (fresh start)
 ```
 
-This reads all `.md` files in `data/`, chunks them by paragraph, embeds with `all-MiniLM-L6-v2`, and upserts to Endee. First run will download the model (~80MB). Re-running without `--clear` updates existing chunks by stable ID.
+This reads all `.md` files in `statistics/`, chunks them by using paragraph, embeds with `all-MiniLM-L6-v2`, and upserts to Endee. First run will download the model (~80MB). Re-going for walks with out `--clear` updates current chunks through solid identification.
 
 ### 5. Run the API
 
@@ -86,44 +86,44 @@ Open **http://localhost:8000** — you’ll see the search UI.
 
 ---
 
-## Usage
+## utilization
 
-- **Search**: Type a question, click Search. You get the top‑k most similar chunks with similarity scores.
-- **Ask (RAG)**: Same flow, but if `OPENAI_API_KEY` is set, the top chunks are passed to GPT‑4o‑mini for a generated answer. Without the key, you only get the context.
+- **search**: kind a query, click seek. You get the pinnacle‑ok most similar chunks with similarity ratings.
+- **Ask (RAG)**: equal drift, however if `OPENAI_API_KEY` is about, the pinnacle chunks are handed to GPT‑4o‑mini for a generated solution. with out the key, you only get the context.
 
 ---
 
 ## API
 
 - `GET /` — search UI
-- `GET /health` — health check
-- `POST /search` — `{"query": "...", "top_k": 5}` → list of matching chunks
-- `POST /ask` — `{"query": "...", "top_k": 3}` → RAG answer + context (if API key set)
+- `GET /fitness` — health take a look at
+- `post /seek` — `{"question": "...", "top_k": 5}` → list of matching chunks
+- `post /ask` — `{"question": "...", "top_k": three}` → RAG solution + context (if API key set)
 
 ---
 
 ## Configuration
 
-Copy `.env.example` to `.env` and adjust if needed:
+replica `.env.example` to `.env` and regulate if wished:
 
 - `ENDEE_URL` — default `http://localhost:8080`
 - `ENDEE_AUTH_TOKEN` — only if Endee is configured with auth
-- `OPENAI_API_KEY` — optional, for RAG answers
-- `MIN_SIMILARITY` — optional, filter results below this score (0–1); default 0
+- `OPENAI_API_KEY` — optional, for RAG solutions
+- `MIN_SIMILARITY` — optional, clear out outcomes under this score (0–1); default zero
 
 ---
 
 ## Internals
 
-- **Embeddings**: `sentence-transformers/all-MiniLM-L6-v2` (384 dims). Runs locally.
-- **Chunking**: Split by paragraph (`\n\n`). No overlap — simple and fine for small docs.
-- **RAG**: Uses OpenAI `gpt-4o-mini` when the key is set. Could be swapped for another provider.
+- **Embeddings**: `sentence-transformers/all-MiniLM-L6-v2` (384 dims). Runs domestically.
+- **Chunking**: cut up through paragraph (`nn`). No overlap — easy and best for small medical doctors.
+- **RAG**: uses OpenAI `gpt-4o-mini` while the important thing is ready. may be swapped for some other provider.
 
 ---
 
-## Adding your own docs
+## including your own doctors
 
-Drop more `.md` files into `data/` and run `python ingest.py` again. Chunks use stable IDs (hash of source + text), so re-running updates rather than duplicates. Use `python ingest.py --clear` for a fresh index.
+Drop extra `.md` documents into `statistics/` and run `python ingest.py` once more. Chunks use stable IDs (hash of supply + textual content), so re-running updates instead of duplicates. Use `python ingest.py --clean` for a sparkling index.
 
 ---
 
